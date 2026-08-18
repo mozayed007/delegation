@@ -1,0 +1,10 @@
+.agents/packets/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+.cursor/hooks/state/

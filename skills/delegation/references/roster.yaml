@@ -1,0 +1,130 @@
+# Default role policy. Live binaries and model ids belong in roster.local.yaml.
+# Rankings snapshot: 2026-08-18. Evidence: references/leaderboards.md
+# Refresh pins only when asked (doctor.py --refresh does not scrape).
+
+schema_version: 1
+pricing_gate:
+  max_api_output_usd_per_m: 25
+  notes: >
+    Never pin a model whose published API output price is $30/MTok or higher.
+    Subscription Sol is T0 because Codex/Cursor/Devin burn quota, not the $5/$30 API.
+    Do not send Sol or Opus through OpenCode Zen at API rates.
+never_pin:
+  - claude-fable-5
+  - claude-mythos-5
+  - claude-opus-5-fast
+  - gpt-5.6-sol-fast
+  - gpt-5.6-sol-priority
+  - gpt-5.6-cyber
+roles:
+  T0:
+    job: Architecture, task graph, review, stop
+    harnesses:
+      - codex
+      - grok
+      - claude
+      - cursor
+      - devin
+      - kimi
+      - agy
+    pin_when_allowed:
+      - claude-opus-5
+      - opus
+      - grok-4.6
+      - gpt-5.6-sol
+      - kimi-code/k3
+      - kimi-k3
+    notes: >
+      Burn dedicated sub quota first (Codex Sol, SuperGrok, Claude Opus, Kimi K3).
+      Grok 4.6 is the cost-efficient frontier pin ($2/$6). When that quota is dead,
+      stay on Cursor or Devin and pick the same family. Never Fable/Mythos/fast SKUs.
+  T1:
+    job: Split work, assign packets, mid planning
+    harnesses:
+      - codex
+      - kimi
+      - opencode
+      - agy
+      - cursor
+      - devin
+    pin_when_allowed:
+      - gpt-5.6-terra
+      - gemini-3.7-flash
+      - claude-sonnet-5
+      - deepseek-v4-pro
+      - glm-5.2
+    notes: >
+      Terra and Gemini 3.7 Flash are the mid-planning pins (DeepSWE ~65-70%).
+      Sonnet 5 is T1 in-Claude. GLM-5.2 is the free OpenCode in-harness pin; quality
+      is T2-adjacent on DeepSWE. Composer 2.5 is T2, not T1. Drop Gemini 3.1 Pro
+      and Sonnet 4.6 from pins (DeepSWE 11.7% / 29.9%).
+  T2:
+    job: Implement, grep, tests, mechanical edits
+    harnesses:
+      - opencode
+      - cursor
+      - agy
+      - codex
+      - dsh
+    pin_when_allowed:
+      - gpt-5.6-luna
+      - opencode/deepseek-v4-flash-free
+      - composer-2.5
+      - deepseek-v4-flash
+      - glm-5.2
+      - mimo-v2.5-free
+      - big-pickle
+    notes: >
+      Luna is T2 only at high or max effort (Luna medium/low collapse on CursorBench+DeepSWE).
+      Composer 2.5 is T2. Free Zen models are promo and often 200K ctx. Data retention is accepted.
+quota_fallback:
+  when: dedicated T0/T1 subscription quota is dead
+  dedicated:
+    - codex
+    - grok
+    - claude
+    - kimi
+    - agy
+  stay_on:
+    - cursor
+    - devin
+  same_model:
+    gpt-5.6-sol:
+      cursor: gpt-5.6-sol
+      devin: gpt-5.6-sol
+    grok-4.6:
+      cursor: grok-4.6
+      devin: grok-4.6
+    opus:
+      cursor: claude-opus-5-thinking-high
+      devin: opus
+    kimi-k3:
+      cursor: kimi-k3-max
+      devin: kimi-k3
+    gpt-5.6-terra:
+      cursor: gpt-5.6-terra
+      devin: gpt-5.6-terra
+    gemini-3.7-flash:
+      cursor: gemini-3.7-flash-high
+      devin: gemini-3.7-flash
+    claude-sonnet-5:
+      cursor: claude-sonnet-5
+      devin: claude-sonnet-5
+  do_not:
+    - Drop T0/T1 work to Composer Fast
+    - Drop T0/T1 work to Zen flash-free or DSH flash
+    - Pick Fable, Mythos, Opus Fast, Sol Fast, or Cyber
+inventory_only:
+  - copilot
+  - gemini
+  - qwen
+seed_defaults:
+  codex: { config_home: ~/.codex, default_model: gpt-5.6-sol, role_if_used_as_is: T0 }
+  grok: { config_home: ~/.grok, default_model: grok-4.6, role_if_used_as_is: T0 }
+  claude: { config_home: ~/.claude, default_model: opus, role_if_used_as_is: T0 }
+  kimi: { config_home: ~/.kimi-code, default_model: kimi-code/k3, role_if_used_as_is: T0 }
+  agy: { config_home: null, default_model: gemini-3.7-flash, role_if_used_as_is: T1 }
+  cursor: { config_home: ~/.cursor, default_model: composer-2.5, role_if_used_as_is: T2 }
+  devin: { config_home: ~/.config/devin, default_model: swe, role_if_used_as_is: T1 }
+  opencode: { config_home: ~/.config/opencode, default_model: opencode/deepseek-v4-flash-free, role_if_used_as_is: T2 }
+  dsh: { config_home: ~/.dsh, default_model: deepseek-official/deepseek-v4-flash, role_if_used_as_is: T2 }
