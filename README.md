@@ -1,10 +1,16 @@
 # Delegation
 
+[![tests](https://github.com/mozayed007/delegation/actions/workflows/test.yml/badge.svg)](https://github.com/mozayed007/delegation/actions/workflows/test.yml)
+
 Portable T0 / T1 / T2 handoff for coding agents. Packets on disk. No daemon.
 
 T0 plans. T1 splits packets. T2 implements. Context survives a harness switch because the packet is files, not chat.
 
 MIT. Python 3.11+ (`tomllib` in `doctor.py`).
+
+```text
+git clone https://github.com/mozayed007/delegation.git
+```
 
 ## Install
 
@@ -92,3 +98,5 @@ Cursor on Composer Fast is T2. Devin on `swe` is not T0. Luna medium/low is not 
 Never pick Fable, Mythos, Opus Fast, Sol Fast, or Cyber. Those are $50-$75 per million output tokens. Subscription Sol is allowed; Sol through OpenCode Zen is not.
 
 Pin evidence: `skills/delegation/references/leaderboards.md`. Policy: `skills/delegation/references/roster.yaml`.
+
+License: [MIT](LICENSE).

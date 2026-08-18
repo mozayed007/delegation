@@ -13,6 +13,11 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+try:
+    import certifi
+except ImportError:
+    certifi = None
+
 HERE = Path(__file__).resolve()
 SKILL_ROOT = HERE.parent.parent
 SOURCES_PATH = SKILL_ROOT / "references" / "sources.yaml"
@@ -61,6 +66,7 @@ T2_ALIASES = {
     "glm-5.2": ("glm-5.2",),
 }
 T2_DEFAULT_EXTRAS = ("opencode/deepseek-v4-flash-free", "mimo-v2.5-free", "big-pickle")
+NEVER_PIN_USD = 30
 GEN_START = "<!-- refresh:generated -->"
 GEN_END = "<!-- /refresh:generated -->"
 
@@ -101,9 +107,16 @@ def load_sources() -> tuple[list[tuple[str, str]], int, set[str], int]:
     return urls, timeout, sub_ok, max_out
 
 
+def ssl_context() -> ssl.SSLContext:
+    ctx = ssl.create_default_context()
+    if certifi is not None:
+        ctx.load_verify_locations(certifi.where())
+    return ctx
+
+
 def fetch(url: str, timeout: int) -> tuple[str, str | None]:
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "text/html,*/*"})
-    ctx = ssl.create_default_context()
+    ctx = ssl_context()
     try:
         with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
             raw = resp.read()
@@ -242,7 +255,7 @@ def parse_source(source_id: str, text: str, scores: dict[str, dict[str, float]],
     if source_id == "openai-pricing":
         parse_openai_prices(text, prices)
         return
-    if source_id == "anthropic-pricing":
+    if source_id in {"anthropic-pricing", "anthropic-pricing-docs"}:
         parse_anthropic_prices(text, prices)
 
 
@@ -271,7 +284,7 @@ def propose(
 ) -> dict[str, Any]:
     never = list(ALWAYS_NEVER_PIN)
     for model_id, price in prices.items():
-        if price >= 30 and model_id not in sub_ok and model_id not in never:
+        if price >= NEVER_PIN_USD and model_id not in sub_ok and model_id not in never:
             never.append(model_id)
     never = sorted(set(never))
 
@@ -525,7 +538,10 @@ def run(apply: bool) -> int:
         "scores": scores,
         "prices": prices,
         "proposal": proposal,
-        "pricing_gate": {"max_api_output_usd_per_m": max_out, "never_pin_usd_per_m": 30},
+        "pricing_gate": {
+            "max_api_output_usd_per_m": max_out,
+            "never_pin_usd_per_m": NEVER_PIN_USD,
+        },
     }
     print(json.dumps({"proposal": proposal, "coverage": coverage}, indent=2))
     if not apply:

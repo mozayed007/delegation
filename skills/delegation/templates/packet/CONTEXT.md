@@ -17,7 +17,7 @@ Distilled facts the next model must have. Not chat logs. Not API keys.
 ## Constraints
 
 - File allowlist lives in WORK.md
-- Principal contract: follow AGENTS.md status labels
+- Status labels: Observed / Verified / Inspected only / Not run / Inferred (AGENTS.md if present)
 
 ## Do not
 

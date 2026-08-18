@@ -102,6 +102,17 @@ class ProposeTests(unittest.TestCase):
         self.assertIn("big-pickle", proposal["T2"])
         self.assertIn("mimo-v2.5-free", proposal["T2"])
 
+    def test_price_26_is_not_never_pin(self) -> None:
+        proposal = propose(
+            scores={"claude-sonnet-5": {"deepswe": 53.8}},
+            prices={"claude-sonnet-5": 26.0},
+            old_pins={"T0": [], "T1": [], "T2": []},
+            sub_ok=set(),
+            max_out=25,
+        )
+        self.assertNotIn("claude-sonnet-5", proposal["never_pin"])
+        self.assertIn("claude-sonnet-5", proposal["T1"])
+
 
 class MarkerTests(unittest.TestCase):
     def test_replace_block_keeps_indent(self) -> None:

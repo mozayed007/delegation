@@ -60,6 +60,14 @@ def repo_root() -> Path:
     return skill_root().parent.parent
 
 
+def source_clone_root() -> Path | None:
+    """Return the git clone of this pack, or None when running from an installed copy."""
+    candidate = skill_root().parent.parent
+    if (candidate / ".git").exists() and (candidate / "adapters" / "cursor" / "agents").is_dir():
+        return candidate
+    return None
+
+
 def which(names: tuple[str, ...]) -> Path | None:
     for name in names:
         found = shutil.which(name)
@@ -623,10 +631,15 @@ def install_adapters_and_skill() -> list[str]:
 
 
 def try_npx_skills_add() -> list[str]:
+    repo = source_clone_root()
+    if repo is None:
+        return [
+            "npx skills add skipped. not a source clone "
+            "(doctor --install from ~/.agents/skills is enough)"
+        ]
     npx = shutil.which("npx")
     if not npx:
         return ["npx skills add skipped. npx missing"]
-    repo = repo_root()
     notes: list[str] = []
     for skill in bundled_skills():
         try:
@@ -675,6 +688,9 @@ def main(argv: list[str] | None = None) -> int:
         help="Fetch public leaderboards and apply T0/T1/T2 pins (roster-refresh).",
     )
     args = parser.parse_args(argv)
+    if sys.version_info < (3, 11):
+        print("Python 3.11+ required (tomllib).", file=sys.stderr)
+        return 2
     load_role_policy()
     should_fetch = args.refresh or (args.install and not snapshot_path().is_file())
     if should_fetch:

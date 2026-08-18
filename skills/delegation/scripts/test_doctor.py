@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from doctor import bundled_skills, dump_yaml, refresh_script_path, yaml_escape
+from doctor import bundled_skills, dump_yaml, refresh_script_path, source_clone_root, yaml_escape
 
 
 class YamlTests(unittest.TestCase):
@@ -35,6 +35,12 @@ class SkillPackTests(unittest.TestCase):
         self.assertIsNotNone(path)
         assert path is not None
         self.assertTrue(path.is_file())
+
+    def test_source_clone_root_finds_this_repo(self) -> None:
+        root = source_clone_root()
+        self.assertIsNotNone(root)
+        assert root is not None
+        self.assertTrue((root / "adapters" / "cursor" / "agents").is_dir())
 
 
 if __name__ == "__main__":
