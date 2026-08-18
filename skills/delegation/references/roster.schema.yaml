@@ -1,22 +1,32 @@
-# Roster schema (informational)
+# Two files share this sketch.
+# Policy: skills/delegation/references/roster.yaml (pins, roles, quota_fallback).
+# Local probe: ~/.agents/delegation/roster.local.yaml (generated_at, tools, coverage).
+# Doctor copies policy next to the local file as roster.yaml.
 
 ```yaml
 schema_version: 1
-generated_at: <ISO-8601>
-ccr:
-  host: 127.0.0.1
-  port: 3456
-  reachable: true|false|unknown
+
+# Policy (roster.yaml)
+pricing_gate:
+  max_api_output_usd_per_m: number
+  notes: string
+never_pin: [string]
 roles:
   T0:
     job: string
     harnesses: [string]
+    pin_when_allowed: [string]
+    notes: string
   T1:
     job: string
     harnesses: [string]
+    pin_when_allowed: [string]
+    notes: string
   T2:
     job: string
     harnesses: [string]
+    pin_when_allowed: [string]
+    notes: string
 quota_fallback:
   when: string
   dedicated: [string]
@@ -26,9 +36,20 @@ quota_fallback:
       cursor: string
       devin: string
   do_not: [string]
-pricing_gate:
-  max_api_output_usd_per_m: number
-never_pin: [string]
+inventory_only: [string]
+seed_defaults:
+  <harness>:
+    config_home: string|null
+    default_model: string
+    role_if_used_as_is: T0|T1|T2
+
+# Local probe (roster.local.yaml)
+generated_at: <ISO-8601>
+ccr:
+  host: 127.0.0.1
+  port: 3456
+  reachable: true|false|unknown
+role_policy: string
 tools:
   <name>:
     present: true|false
@@ -53,3 +74,4 @@ Rules:
 - `cursor-agent --list-models` returning empty is not evidence that Cursor has no models.
 - Cursor default Composer and Devin default `swe` are `role_if_used_as_is` only. T0/T1 capability is the picker, recorded in `quota_fallback.same_model`.
 - `never_pin` lists API SKUs at or above $30/MTok output (Fable, Mythos, fast/priority, Cyber). Subscription Sol is not in that list.
+- `pin_when_allowed` is the live T0/T1/T2 pin list. Refresh only via roster-refresh / `doctor.py --refresh`.

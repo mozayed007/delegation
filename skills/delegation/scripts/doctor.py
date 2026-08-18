@@ -492,33 +492,105 @@ def adapters_dir() -> Path | None:
     return None
 
 
-def skill_install_dests() -> list[Path]:
+REFRESH_STALE_DAYS = 14
+
+
+def bundled_skills() -> list[Path]:
+    root = skill_root().parent
+    if root.is_dir():
+        found = sorted(
+            path for path in root.iterdir() if path.is_dir() and (path / "SKILL.md").is_file()
+        )
+        if found:
+            return found
+    return [skill_root()]
+
+
+def skill_install_dests_for(name: str) -> list[Path]:
     dests = [
-        HOME / ".agents" / "skills" / "delegation",
-        HOME / ".cursor" / "skills" / "delegation",
+        HOME / ".agents" / "skills" / name,
+        HOME / ".cursor" / "skills" / name,
     ]
     xdg_devin = HOME / ".config" / "devin"
     roaming = Path(os.environ.get("APPDATA", "")) / "devin"
     if xdg_devin.is_dir():
-        dests.append(xdg_devin / "skills" / "delegation")
+        dests.append(xdg_devin / "skills" / name)
     if roaming.is_dir():
-        dests.append(roaming / "skills" / "delegation")
+        dests.append(roaming / "skills" / name)
     return dests
+
+
+def snapshot_path() -> Path:
+    return skill_root() / "references" / "leaderboards.snapshot.json"
+
+
+def refresh_script_path() -> Path | None:
+    candidates = (
+        skill_root().parent / "roster-refresh" / "scripts" / "refresh_roster.py",
+        repo_root() / "skills" / "roster-refresh" / "scripts" / "refresh_roster.py",
+        HOME / ".agents" / "skills" / "roster-refresh" / "scripts" / "refresh_roster.py",
+    )
+    for path in candidates:
+        if path.is_file():
+            return path
+    return None
+
+
+def snapshot_stale_note() -> str | None:
+    path = snapshot_path()
+    if not path.is_file():
+        return (
+            "leaderboards.snapshot.json missing. "
+            "First-time fetch: doctor.py --install or doctor.py --refresh."
+        )
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        stamp = data.get("generated_at") if isinstance(data, dict) else None
+        when = dt.datetime.strptime(str(stamp), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=dt.timezone.utc)
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        when = dt.datetime.fromtimestamp(path.stat().st_mtime, tz=dt.timezone.utc)
+    age = (dt.datetime.now(dt.timezone.utc) - when).days
+    if age >= REFRESH_STALE_DAYS:
+        return (
+            f"leaderboards snapshot is {age} days old. "
+            "Run doctor.py --refresh or ask to refresh the roster."
+        )
+    return None
+
+
+def run_roster_refresh() -> str:
+    script = refresh_script_path()
+    if script is None:
+        return "roster-refresh skipped. refresh_roster.py missing"
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(script), "--apply"],
+            capture_output=True,
+            text=True,
+            timeout=180,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return f"roster-refresh failed. {exc}"
+    snippet = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()
+    tail = snippet[-12:] if snippet else []
+    status = "ok" if proc.returncode == 0 else f"exit {proc.returncode}"
+    return "roster-refresh " + status + (": " + " | ".join(tail) if tail else "")
 
 
 def install_adapters_and_skill() -> list[str]:
     notes: list[str] = []
-    skill_src = skill_root()
     seen: set[Path] = set()
-    for dest in skill_install_dests():
-        if dest.exists() or dest.is_symlink():
-            dest = dest.resolve()
-        if dest in seen:
-            notes.append(f"installed skill skipped (alias of {dest})")
-            continue
-        seen.add(dest)
-        copytree(skill_src, dest)
-        notes.append(f"installed skill -> {dest}")
+    for skill_src in bundled_skills():
+        for dest in skill_install_dests_for(skill_src.name):
+            if dest.exists() or dest.is_symlink():
+                dest = dest.resolve()
+            if dest in seen:
+                notes.append(f"installed skill skipped (alias of {dest})")
+                continue
+            seen.add(dest)
+            copytree(skill_src, dest)
+            notes.append(f"installed skill -> {dest}")
 
     adapters = adapters_dir()
     if adapters is None:
@@ -550,37 +622,43 @@ def install_adapters_and_skill() -> list[str]:
     return notes
 
 
-def try_npx_skills_add() -> str:
+def try_npx_skills_add() -> list[str]:
     npx = shutil.which("npx")
     if not npx:
-        return "npx skills add skipped. npx missing"
+        return ["npx skills add skipped. npx missing"]
     repo = repo_root()
-    try:
-        proc = subprocess.run(
-            [
-                npx,
-                "-y",
-                "skills",
-                "add",
-                str(repo),
-                "--skill",
-                "delegation",
-                "-g",
-                "-a",
-                "*",
-                "-y",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
+    notes: list[str] = []
+    for skill in bundled_skills():
+        try:
+            proc = subprocess.run(
+                [
+                    npx,
+                    "-y",
+                    "skills",
+                    "add",
+                    str(repo),
+                    "--skill",
+                    skill.name,
+                    "-g",
+                    "-a",
+                    "*",
+                    "-y",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=120,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            notes.append(f"npx skills add {skill.name} failed. {exc}")
+            continue
+        snippet = (proc.stdout or proc.stderr or "").strip().splitlines()
+        tail = snippet[-8:] if snippet else []
+        status = "ok" if proc.returncode == 0 else f"exit {proc.returncode}"
+        notes.append(
+            f"npx skills add {skill.name} " + status + (": " + " | ".join(tail) if tail else "")
         )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return f"npx skills add failed. {exc}"
-    snippet = (proc.stdout or proc.stderr or "").strip().splitlines()
-    tail = snippet[-8:] if snippet else []
-    status = "ok" if proc.returncode == 0 else f"exit {proc.returncode}"
-    return "npx skills add " + status + (": " + " | ".join(tail) if tail else "")
+    return notes
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -594,23 +672,26 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--refresh",
         action="store_true",
-        help="Stamp generated_at only. Does not scrape Artificial Analysis.",
+        help="Fetch public leaderboards and apply T0/T1/T2 pins (roster-refresh).",
     )
     args = parser.parse_args(argv)
     load_role_policy()
+    should_fetch = args.refresh or (args.install and not snapshot_path().is_file())
+    if should_fetch:
+        print(run_roster_refresh())
+    else:
+        stale = snapshot_stale_note()
+        if stale:
+            print(stale)
     roster = build_roster()
-    if args.refresh:
-        roster["notes"] = (
-            "Inspected only: live AA scrape is not implemented. "
-            "Edit references/roster.yaml pins from references/leaderboards.md when rankings change."
-        )
     write_roster(roster, args.out)
     print(f"wrote {args.out}")
     print_map(roster)
     if args.install:
         for note in install_adapters_and_skill():
             print(note)
-        print(try_npx_skills_add())
+        for note in try_npx_skills_add():
+            print(note)
     return 0
 
 

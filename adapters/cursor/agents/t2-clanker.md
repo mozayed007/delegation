@@ -1,6 +1,6 @@
 ---
 name: t2-clanker
-description: T2 clanker. Use for implementation, grep, tests, and mechanical edits inside a packet allowlist. Composer Fast belongs here, not on T0/T1 quota fallback.
+description: T2 clanker on Composer 2.5. Use for implementation, grep, tests, and mechanical edits inside a packet allowlist. Cursor's live Fast default is T2 only if the picker stays there. Do not put Composer on T0/T1 quota fallback.
 model: composer-2.5
 ---
 

@@ -1,6 +1,6 @@
 # Leaderboard snapshot (2026-08-18)
 
-Used to set T0 / T1 / T2 pins. Not a live scrape. `doctor.py --refresh` only stamps `generated_at`.
+Used to set T0 / T1 / T2 pins. Refresh with `roster-refresh` (`doctor.py --refresh`, or first-time `doctor.py --install` if `leaderboards.snapshot.json` is missing). JS-heavy AA pages often need a manual fill after the fetch.
 
 Pricing gate: never pin a model whose published API output is $30/MTok or higher (Fable, Mythos, Opus Fast, Sol Fast/priority, Cyber). Subscription Sol remains T0 because Codex/Cursor/Devin burn quota, not the $5/$30 API. Do not send Sol or Opus through OpenCode Zen.
 
@@ -15,6 +15,7 @@ Aider polyglot public tables still peak on 2025 GPT-5 / Opus 4 rows. Ignored for
 | T2 | Luna high/max, Composer 2.5, V4 Flash, GLM-5.2, Zen free | Luna Max DeepSWE 67.2 / CursorBench 61.1 at $0.39/task. Luna medium/low collapse (combined 29% / 20%). |
 | Excluded | Fable, Mythos, Opus Fast, Sol Fast, Cyber | Fable/Mythos $50/M out. Opus Fast $50. Sol Fast $60. Cyber $75. |
 
+<!-- refresh:generated -->
 ## Scores used
 
 | Model | AA Intelligence | CursorBench 3.2 | DeepSWE pass@1 | Terminal-Bench 2.1 | Vals SWE-bench Verified | API out $/M |
@@ -34,6 +35,7 @@ Aider polyglot public tables still peak on 2025 GPT-5 / Opus 4 rows. Ignored for
 | DeepSeek V4 Flash | - | - | 53.3 | 78.6 | (Flash row) | 0.28 |
 | Gemini 3.1 Pro | - | - | 11.7 | 73.8 | (old Pro row) | dropped from pins |
 | Claude Sonnet 4.6 | - | - | 29.9 | 71.2 | (old Sonnet row) | dropped from pins |
+<!-- /refresh:generated -->
 
 ## Sources
 

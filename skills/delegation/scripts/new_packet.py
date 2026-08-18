@@ -22,15 +22,11 @@ def _template_dir(explicit: Path | None) -> Path:
     if explicit is not None:
         return explicit
     here = Path(__file__).resolve()
-    candidates = [
-        here.parent.parent / "templates" / "packet",
-        here.parents[2] / "templates" / "packet",
-    ]
-    for candidate in candidates:
-        if (candidate / "TASK.md").is_file():
-            return candidate
+    candidate = here.parent.parent / "templates" / "packet"
+    if (candidate / "TASK.md").is_file():
+        return candidate
     raise FileNotFoundError(
-        "packet templates not found; pass --templates or run from the Delegation repo"
+        "packet templates not found; pass --templates or run from the installed delegation skill"
     )
 
 

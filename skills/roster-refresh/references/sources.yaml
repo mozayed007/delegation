@@ -1,0 +1,30 @@
+# Public pages the roster-refresh script fetches. No secrets.
+# Last curated with the 2026-08-18 T0/T1/T2 cut.
+
+timeout_sec: 20
+max_api_output_usd_per_m: 25
+subscription_ok_at_30:
+  - gpt-5.6-sol
+
+sources:
+  - id: aa-intelligence
+    url: https://artificialanalysis.ai/models?intelligence=artificial-analysis-intelligence-index
+  - id: aa-grok-4-6
+    url: https://artificialanalysis.ai/articles/grok-4-6-benchmarks-and-analysis
+  - id: cursorbench
+    url: https://cursor.com/cursorbench
+  - id: deepswe
+    url: https://benchlm.ai/benchmarks/deepswe
+  - id: swebench-vals
+    url: https://vals.ai/benchmarks/swebench
+  - id: terminalbench
+    url: https://artificialanalysis.ai/evaluations/terminalbench-v2-1
+  - id: openai-pricing
+    url: https://developers.openai.com/api/docs/pricing
+  - id: anthropic-pricing
+    url: https://platform.claude.com/docs/en/about-claude/pricing
+  - id: gemini-3-7-flash-card
+    url: https://deepmind.google/models/model-cards/gemini-3-7-flash/
+
+ignore_boards:
+  - Aider polyglot (stale 2025 GPT-5 / Opus 4 public tables)

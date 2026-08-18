@@ -38,6 +38,15 @@ class RosterPolicyTests(unittest.TestCase):
         self.assertIn("gemini-3.7-flash", t1)
         self.assertIn("gpt-5.6-terra", t1)
 
+    def test_refresh_markers_present(self) -> None:
+        for needle in (
+            "# refresh:never_pin",
+            "# refresh:pins:T0",
+            "# refresh:pins:T1",
+            "# refresh:pins:T2",
+        ):
+            self.assertIn(needle, self.text)
+
 
 if __name__ == "__main__":
     unittest.main()

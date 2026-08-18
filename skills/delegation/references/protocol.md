@@ -17,7 +17,13 @@ In the target repo:
   FILES.md
 ```
 
-Create with:
+Create with the installed skill (after `doctor.py --install`):
+
+```text
+python ~/.agents/skills/delegation/scripts/new_packet.py --repo <repo> --id <id>
+```
+
+In this pack, before install:
 
 ```text
 python skills/delegation/scripts/new_packet.py --repo <repo> --id <id>

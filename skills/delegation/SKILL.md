@@ -80,4 +80,4 @@ python <this-skill>/scripts/doctor.py
 python <this-skill>/scripts/doctor.py --install
 ```
 
-Doctor records a null result when a binary, config, or model is absent. It never writes secrets. Rankings in roster.yaml are a snapshot; refresh only with `doctor.py --refresh` when asked.
+Doctor records a null result when a binary, config, or model is absent. It never writes secrets. Rankings in roster.yaml refresh on first `--install` if the snapshot is missing, and anytime with `doctor.py --refresh` or the `roster-refresh` skill.

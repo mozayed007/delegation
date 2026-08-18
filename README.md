@@ -4,26 +4,52 @@ Portable T0 / T1 / T2 handoff for coding agents. Packets on disk. No daemon.
 
 T0 plans. T1 splits packets. T2 implements. Context survives a harness switch because the packet is files, not chat.
 
+MIT. Python 3.11+ (`tomllib` in `doctor.py`).
+
 ## Install
 
+Canonical setup: clone this repo, then:
+
 ```text
 python skills/delegation/scripts/doctor.py --install
 ```
 
-Or:
+That copies `delegation` and `roster-refresh` into `~/.agents/skills` (plus Cursor/Devin copies), copies harness adapters, writes `~/.agents/delegation/roster.local.yaml`, and appends `~/.agents/skills` to Kimi `extra_skill_dirs` and DSH `customSkillDirs`. If `leaderboards.snapshot.json` is missing, it also fetches public boards and applies T0/T1/T2 pins.
+
+Optional npx (still run `doctor.py --install` after):
 
 ```text
-npx -y skills add <this-repo> --skill delegation -g -a '*' -y
+npx -y skills add https://github.com/mozayed-RnD/delegation --skill delegation -g -a '*' -y
+npx -y skills add https://github.com/mozayed-RnD/delegation --skill roster-refresh -g -a '*' -y
 python skills/delegation/scripts/doctor.py --install
 ```
 
-`--install` restores `~/.agents/skills/delegation` (and Cursor/Devin copies), copies harness adapters, writes `~/.agents/delegation/roster.local.yaml`, and appends `~/.agents/skills` to Kimi `extra_skill_dirs` and DSH `customSkillDirs`.
+Do not run `npx skills add` from the installed copy under `~/.agents`. Clone first.
 
 Tests (stdlib only):
 
 ```text
 python -m unittest discover -s skills/delegation/scripts -p "test_*.py"
+python -m unittest discover -s skills/roster-refresh/scripts -p "test_*.py"
 ```
+
+## Keep the roster current
+
+First time (no snapshot yet): `doctor.py --install` fetches.
+
+Later, when you want a new cut:
+
+```text
+python skills/delegation/scripts/doctor.py --refresh
+```
+
+Or tell any agent: `refresh the roster` (loads the `roster-refresh` skill). Direct script:
+
+```text
+python skills/roster-refresh/scripts/refresh_roster.py --apply
+```
+
+Dry run (print only): omit `--apply`. This is not a cron job. Re-run when you ask, or when doctor warns the snapshot is older than 14 days.
 
 ## Use it on a real project
 
