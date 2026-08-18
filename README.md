@@ -19,8 +19,8 @@ That copies `delegation` and `roster-refresh` into `~/.agents/skills` (plus Curs
 Optional npx (still run `doctor.py --install` after):
 
 ```text
-npx -y skills add https://github.com/mozayed-RnD/delegation --skill delegation -g -a '*' -y
-npx -y skills add https://github.com/mozayed-RnD/delegation --skill roster-refresh -g -a '*' -y
+npx -y skills add https://github.com/mozayed007/delegation --skill delegation -g -a '*' -y
+npx -y skills add https://github.com/mozayed007/delegation --skill roster-refresh -g -a '*' -y
 python skills/delegation/scripts/doctor.py --install
 ```
 
